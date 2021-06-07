@@ -37,9 +37,17 @@ pipeline {
             }
         }
         stage('deploy') {
+            input {
+                message "Select the deployment environment"
+                ok "Done!"
+                parameters {
+                    choice(name:'ENV', choices: ['dev', 'staging', 'prod'], description: 'environment choices')
+                }
+            }
             steps {
                 script {
                     gv.deployApp()
+                    echo "Deploying to ${ENV}"
                 }
             }
         }
