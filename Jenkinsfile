@@ -20,14 +20,14 @@ pipeline {
                 }
             }
         }
-                stage('build image'){
+        stage('build image'){
             steps {
                 script {
                    gv.buildImage()
                     }
                 }
             }
-        } 
+     
         stage("deploy"){
             steps {
                 script {
@@ -35,4 +35,5 @@ pipeline {
                 }
             }
         }
-    }
+    } 
+}
