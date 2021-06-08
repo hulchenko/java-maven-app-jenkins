@@ -1,47 +1,32 @@
-#!/usr/bin/env groovy
-def gv
-
 pipeline {
     agent any
-    parameters {
-        choice(name:'VERSION', choices: ['1.1.0', '1.2.0', '1.3.0'], description: '')
-        booleanParam(name: 'executeTests', defaultValue: true, description: '')
+    tools {
+        maven 'Maven'
     }
     stages {
-        stage('init') {
-    steps {
-        script {
-            gv = load "script.groovy"
-        }
-    }
-}
-        stage('build') {
+        stage('build jar'){
             steps {
                 script {
-                    script {
-                        gv.buildApp()
-                    }
+                    echo "building the application.."
+                    sh "mvn package"
                 }
             }
         }
-        stage('test') {
-            when {
-                expression {
-                    params.executeTests
-                }
-            }
+                stage('build image'){
             steps {
                 script {
-                    gv.testApp()
+                    echo "building docker image.."
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')])
+                    sh 'docker build -t hulchenko/demo-app:jma-2.0 .'
+                    sh "echo $PASSWORD | docker login -u $USER --password-stdin"
+                    sh 'docker push hulchenko/demo-app:jma-2.0'
                 }
             }
-        }
-        stage('deploy') {
+        } 
+        stage("deploy"){
             steps {
                 script {
-                    env.ENV = input message: "Select the deployment environment", ok: "Done!", parameters: [choice(name:'ONE', choices: ['dev', 'staging', 'prod'], description: 'environment choices')]
-                    gv.deployApp()
-                    echo "Deploying to ${ENV}"
+                    echo "deploying the application.."
                 }
             }
         }
